@@ -33,6 +33,7 @@ addons:
     sources:
       - mongodb-3.2-precise
     packages:
+      - parallel
       - mongodb-org-server
 
 cache:
