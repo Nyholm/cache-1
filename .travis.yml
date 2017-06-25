@@ -61,6 +61,8 @@ before_install:
           shift
           echo -e "travis_fold:start:$fold\\n\\e[1;34m$title\\e[0m"
           bash -xc "$*" 2>&1 &&
+              echo "\n\n########################################" &&
+              echo "\n########################################\n" &&
               echo -e "\\e[32mOK\\e[0m $title\\n\\ntravis_fold:end:$fold" ||
               ( echo -e "\\e[41mKO\\e[0m $title\\n" && exit 1 )
       }
