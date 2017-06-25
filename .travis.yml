@@ -61,8 +61,8 @@ before_install:
           shift
           echo -e "travis_fold:start:$fold\\n\\e[1;34m$title\\e[0m"
           bash -xc "$*" 2>&1 &&
-              echo "\n\n########################################" &&
-              echo "\n########################################\n" &&
+              echo "########################################" &&
+              echo "########################################" &&
               echo -e "\\e[32mOK\\e[0m $title\\n\\ntravis_fold:end:$fold" ||
               ( echo -e "\\e[41mKO\\e[0m $title\\n" && exit 1 )
       }
@@ -84,6 +84,7 @@ install:
         elif [[ $deps = high ]]; then
             echo "$COMPONENTS" | parallel --gnu -j10% "tfold {} 'cd {} && $COMPOSER_UP && $PHPUNIT_X$LEGACY'"
         elif [[ $deps = low ]]; then
+            sleep 30
             echo "$COMPONENTS" | parallel --gnu -j10% "tfold {} 'cd {} && $COMPOSER_UP --prefer-lowest --prefer-stable && $PHPUNIT_X'"
         elif [[ $COVERAGE != true ]]; then
             tfold tty-group $PHPUNIT_COVERAGE --group tty
