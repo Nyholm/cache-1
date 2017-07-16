@@ -1,10 +1,9 @@
 language: php
-sudo: false
-
+sudo: required
+dist: precise
 env:
   global:
     - COVERAGE=false
-    - TEST="./vendor/bin/phpunit"
 
 branches:
   except:
@@ -42,9 +41,9 @@ cache:
 
 before_install:
     - if [[ $COVERAGE != true ]]; then phpenv config-rm xdebug.ini || true; fi
-    - if [[ $COVERAGE == true ]]; then TEST="$TEST --coverage-clover=coverage.xml"; fi
     - mkdir -p ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d
     - ./build/php/all.sh
+    - sleep 30 # To make sure all services installed and running
     - |
       # General configuration
       stty cols 120
@@ -52,6 +51,7 @@ before_install:
       [ -d ~/.composer ] || mkdir ~/.composer
       export PHPUNIT=$(readlink -f ./phpunit)
       export PHPUNIT_X="$PHPUNIT --exclude-group benchmark"
+      export PHPUNIT_COVERAGE="$PHPUNIT_X --coverage-clover=coverage.xml"
       export COMPOSER_UP='composer update --no-progress --no-suggest --ansi --prefer-dist'
 
       # tfold is a helper to create folded reports
@@ -61,6 +61,8 @@ before_install:
           shift
           echo -e "travis_fold:start:$fold\\n\\e[1;34m$title\\e[0m"
           bash -xc "$*" 2>&1 &&
+              echo "########################################" &&
+              echo "########################################" &&
               echo -e "\\e[32mOK\\e[0m $title\\n\\ntravis_fold:end:$fold" ||
               ( echo -e "\\e[41mKO\\e[0m $title\\n" && exit 1 )
       }
@@ -82,7 +84,10 @@ install:
         elif [[ $deps = high ]]; then
             echo "$COMPONENTS" | parallel --gnu -j10% "tfold {} 'cd {} && $COMPOSER_UP && $PHPUNIT_X$LEGACY'"
         elif [[ $deps = low ]]; then
+            sleep 30
             echo "$COMPONENTS" | parallel --gnu -j10% "tfold {} 'cd {} && $COMPOSER_UP --prefer-lowest --prefer-stable && $PHPUNIT_X'"
+        elif [[ $COVERAGE != true ]]; then
+            tfold tty-group $PHPUNIT_COVERAGE --group tty
         else
             echo "$COMPONENTS" | parallel --gnu "tfold {} $PHPUNIT_X {}"
             tfold tty-group $PHPUNIT --group tty
