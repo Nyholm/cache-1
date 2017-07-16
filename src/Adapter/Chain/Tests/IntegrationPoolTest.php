@@ -12,10 +12,13 @@
 namespace Cache\Adapter\Chain\Tests;
 
 use Cache\Adapter\Chain\CachePoolChain;
+use Cache\Adapter\Filesystem\FilesystemCachePool;
 use Cache\Adapter\PHPArray\ArrayCachePool;
 use Cache\Adapter\Predis\PredisCachePool;
 use Cache\IntegrationTests\CachePoolTest;
+use League\Flysystem\Adapter\Local;
 use Predis\Client;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 
 class IntegrationPoolTest extends CachePoolTest
 {
@@ -32,7 +35,8 @@ class IntegrationPoolTest extends CachePoolTest
     public function getAdapters()
     {
         if ($this->adapters === null) {
-            $this->adapters = [new PredisCachePool(new Client('tcp:/127.0.0.1:6379')), new ArrayCachePool()];
+            $filesystemAdapter = new Local(sys_get_temp_dir().'/cache_'.rand(1, 1000));
+            $this->adapters = [new FilesystemCachePool($filesystemAdapter), new ArrayCachePool()];
         }
 
         return $this->adapters;
